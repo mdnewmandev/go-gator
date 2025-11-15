@@ -3,9 +3,14 @@ package main
 import (
 	"fmt"
 	"log"
+	"os"
 
 	"github.com/mdnewmandev/go-gator/internal/config"
 )
+
+type state struct {
+	Config *config.Config
+}
 
 func main() {
 	cfg, err := config.Read()
@@ -14,16 +19,49 @@ func main() {
 	}
 	fmt.Println(cfg)
 
-	err = cfg.SetUser("mich")
+	s := &state{Config: cfg}
+	
+	cmds := &commands{List: make(map[string]func(*state, command) error)}
+	err = cmds.register("login", handlerLogin)
 	if err != nil {
-		log.Fatalf("Error setting user: %v", err)
+		log.Fatalf("Error registering command: %v", err)
 	}
-	fmt.Println("User set to 'mich' and saved to disk.")
 
-	cfg, err = config.Read()
-	if err != nil {
-		log.Fatalf("Error reading config: %v", err)
+	if len(os.Args) < 2 {
+		log.Fatalf("No command provided")
 	}
 	
-	fmt.Println(cfg)
+	cmd := command{
+		Name:      os.Args[1],
+		Arguments: os.Args[2:],
+	}
+
+	err = cmds.run(s, cmd)
+	if err != nil {
+		log.Fatalf("Error executing command: %v", err)
+	}
+}
+
+type command struct {
+	Name        string
+	Arguments   []string
+}
+
+type commands struct {
+	List map[string]func(*state, command) error
+}
+
+func (c *commands) run(s *state, cmd command) error {
+	if handler, exists := c.List[cmd.Name]; exists {
+		return handler(s, cmd)
+	}
+	return fmt.Errorf("unknown command: %s", cmd.Name)
+}
+
+func (c *commands) register(name string, f func(*state, command) error) error {
+	if _, exists := c.List[name]; exists {
+		return fmt.Errorf("command already registered: %s", name)
+	}
+	c.List[name] = f
+	return nil
 }
