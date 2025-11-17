@@ -1,16 +1,19 @@
 package main
 
 import (
+	"database/sql"
 	"fmt"
 	"log"
 	"os"
 
 	_ "github.com/lib/pq"
 	"github.com/mdnewmandev/go-gator/internal/config"
+	"github.com/mdnewmandev/go-gator/internal/database"
 )
 
 type state struct {
-	Config *config.Config
+	db 		*database.Queries
+	Config 	*config.Config
 }
 
 func main() {
@@ -22,12 +25,25 @@ func main() {
 
 	s := &state{Config: cfg}
 	
+	db, err := sql.Open("postgres", cfg.DBURL)
+	if err != nil {
+		log.Fatalf("Error connecting to database: %v", err)
+	}
+	defer db.Close()
+	dbQueries := database.New(db)
+	s.db = dbQueries
+
 	cmds := &commands{List: make(map[string]func(*state, command) error)}
 	err = cmds.register("login", handlerLogin)
 	if err != nil {
 		log.Fatalf("Error registering command: %v", err)
 	}
 
+	err = cmds.register("register", handlerRegister)
+	if err != nil {
+		log.Fatalf("Error registering command: %v", err)
+	}
+	
 	if len(os.Args) < 2 {
 		log.Fatalf("No command provided")
 	}

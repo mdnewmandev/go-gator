@@ -8,6 +8,8 @@ package database
 import (
 	"context"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 const createUser = `-- name: CreateUser :one
@@ -22,7 +24,7 @@ RETURNING id, created_at, updated_at, name
 `
 
 type CreateUserParams struct {
-	ID        int32
+	ID        uuid.UUID
 	CreatedAt time.Time
 	UpdatedAt time.Time
 	Name      string
@@ -50,7 +52,7 @@ SELECT name FROM users
 WHERE id = $1
 `
 
-func (q *Queries) GetUser(ctx context.Context, id int32) (string, error) {
+func (q *Queries) GetUser(ctx context.Context, id uuid.UUID) (string, error) {
 	row := q.db.QueryRowContext(ctx, getUser, id)
 	var name string
 	err := row.Scan(&name)
