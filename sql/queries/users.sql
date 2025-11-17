@@ -10,4 +10,4 @@ RETURNING *;
 
 -- name: GetUser :one
 SELECT name FROM users
-WHERE id = $1;
+WHERE name = $1;
