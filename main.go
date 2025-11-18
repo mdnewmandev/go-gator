@@ -49,6 +49,11 @@ func main() {
 		log.Fatalf("Error registering command: %v", err)
 	}
 
+	err = cmds.register("users", handlerUsers)
+	if err != nil {
+		log.Fatalf("Error registering command: %v", err)
+	}
+
 	if len(os.Args) < 2 {
 		log.Fatalf("No command provided")
 	}
