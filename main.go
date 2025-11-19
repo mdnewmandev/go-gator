@@ -21,7 +21,6 @@ func main() {
 	if err != nil {
 		log.Fatalf("Error reading config: %v", err)
 	}
-	fmt.Println(cfg)
 
 	s := &state{Config: cfg}
 	
@@ -50,6 +49,11 @@ func main() {
 	}
 
 	err = cmds.register("users", handlerUsers)
+	if err != nil {
+		log.Fatalf("Error registering command: %v", err)
+	}
+
+	err = cmds.register("agg", handlerAgg)
 	if err != nil {
 		log.Fatalf("Error registering command: %v", err)
 	}
