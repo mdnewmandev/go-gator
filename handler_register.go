@@ -18,8 +18,9 @@ func handlerRegister(s *state, cmd command) error {
 	}
 
 	name := cmd.Arguments[0]
+	uuid := uuid.New()
 	_, err := s.db.CreateUser(context.Background(), database.CreateUserParams{
-		ID:        uuid.New(),
+		ID:        uuid,
 		Name:      name,
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
@@ -32,7 +33,7 @@ func handlerRegister(s *state, cmd command) error {
 		return fmt.Errorf("failed to create user: %w", err)
 	}
 
-	err = s.Config.SetUser(name)
+	err = s.Config.SetUser(name, uuid.String())
 	if err != nil {
 		return fmt.Errorf("failed to set current user: %w", err)
 	}
